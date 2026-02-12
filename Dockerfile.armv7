@@ -1,0 +1,21 @@
+# use a builder image for building cloudflare
+FROM golang:1.24.4 AS builder
+ENV GO111MODULE=on \
+  CGO_ENABLED=0 \
+  CONTAINER_BUILD=1
+
+WORKDIR /go/src/github.com/cloudflare/cloudflared/
+COPY . .
+
+# compile cloudflared for 32-bit ARM v7
+RUN GOOS=linux GOARCH=arm TARGET_ARM=7 make cloudflared
+
+# use a distroless base image for ARM (arm/v7)
+FROM gcr.io/distroless/base-debian12:nonroot-arm
+LABEL org.opencontainers.image.source="https://github.com/cloudflare/cloudflared"
+
+COPY --from=builder --chown=nonroot /go/src/github.com/cloudflare/cloudflared/cloudflared /usr/local/bin/
+
+USER 65532:65532
+ENTRYPOINT ["cloudflared", "--no-autoupdate"]
+CMD ["version"]

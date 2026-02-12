@@ -1,11 +1,13 @@
 # use a builder image for building cloudflare
 ARG TARGET_GOOS
 ARG TARGET_GOARCH
+ARG TARGET_ARM
 FROM golang:1.24.4 AS builder
 ENV GO111MODULE=on \
   CGO_ENABLED=0 \
   TARGET_GOOS=${TARGET_GOOS} \
   TARGET_GOARCH=${TARGET_GOARCH} \
+  TARGET_ARM=${TARGET_ARM} \
   # the CONTAINER_BUILD envvar is used set github.com/cloudflare/cloudflared/metrics.Runtime=virtual
   # which changes how cloudflared binds the metrics server
   CONTAINER_BUILD=1
